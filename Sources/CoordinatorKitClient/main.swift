@@ -20,8 +20,7 @@ enum HomeRoute: NavigationRoute {
                     Text("Go to screen 2")
                 }
             }
-
-
+            
         case .screen2:
             Text("Screen 2")
         }
