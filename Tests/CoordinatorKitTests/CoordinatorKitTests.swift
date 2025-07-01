@@ -4,45 +4,77 @@ import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
 import XCTest
 
-// Macro implementations build for the host, so the corresponding module is not available when cross-compiling. Cross-compiled tests may still make use of the macro itself in end-to-end tests.
 #if canImport(CoordinatorKitMacros)
 import CoordinatorKitMacros
 
 let testMacros: [String: Macro.Type] = [
-    "stringify": StringifyMacro.self,
+    "Coordinator": CoordinatorKit.self,
 ]
 #endif
 
 final class CoordinatorKitTests: XCTestCase {
-    func testMacro() throws {
-        #if canImport(CoordinatorKitMacros)
+    
+    func testCoordinatorMacroExpansion() throws {
+#if canImport(CoordinatorKitMacros)
         assertMacroExpansion(
             """
-            #stringify(a + b)
+            @Coordinator(MyRoute)
+            class MyCoordinator { }
             """,
             expandedSource: """
-            (a + b, "a + b")
+            class MyCoordinator { 
+
+                @Published internal var navigationPath: [MyRoute] = []
+
+                @Published internal var sheetRoute: MyRoute?
+
+                @Published internal var fullScreenRoute: MyRoute?
+
+                let actionDispatcher = ActionDispatcher<MyRoute.Action>()
+
+                var actionCancellables = Set<AnyCancellable>()
+
+                deinit {
+                    Task { @MainActor in
+                        cleanup()
+                    }
+                }
+            }
+
+            @MainActor extension MyCoordinator: Coordinator {
+            }
             """,
             macros: testMacros
         )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
-    }
 
-    func testMacroWithStringLiteral() throws {
-        #if canImport(CoordinatorKitMacros)
+#else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+#endif
+    }
+    
+    func testMissingRouteArgumentThrowsError() throws {
+#if canImport(CoordinatorKitMacros)
         assertMacroExpansion(
-            #"""
-            #stringify("Hello, \(name)")
-            """#,
-            expandedSource: #"""
-            ("Hello, \(name)", #""Hello, \(name)""#)
-            """#,
+            """
+            @Coordinator
+            class InvalidCoordinator { }
+            """,
+            expandedSource: """
+            class InvalidCoordinator { }
+            """,
+            diagnostics: [
+                DiagnosticSpec(
+                    message: "@Coordinator macro requires a type NavigationRoute",
+                    line: 1,
+                    column: 1
+                )
+                
+            ],
             macros: testMacros
         )
-        #else
+#else
         throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
+#endif
     }
 }
+

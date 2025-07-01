@@ -280,12 +280,14 @@ public struct CoordinatorView<C: Coordinator>: View {
                     actionDispatcher: coordinator.actionDispatcher
                 )
             }
+#if os(iOS)
             .fullScreenCover(item: $coordinator.fullScreenRoute) { route in
                 RouteViewBuilder(
                     route: route,
                     actionDispatcher: coordinator.actionDispatcher
                 )
             }
+#endif
         }
         .background(Color.clear)
     }

@@ -6,7 +6,12 @@ import CompilerPluginSupport
 
 let package = Package(
     name: "CoordinatorKit",
-    platforms: [.macOS(.v10_15), .iOS(.v16), .tvOS(.v13), .watchOS(.v6), .macCatalyst(.v13)],
+    platforms: [
+        .macOS(.v13),
+        .iOS(.v16),
+        .tvOS(.v13),
+        .watchOS(.v9)
+    ],
     products: [
         // Products define the libraries a package produces, making them visible to other packages.
         .library(
@@ -31,7 +36,7 @@ let package = Package(
 
         // Library that exposes a macro as part of its API, which is used in client programs.
         .target(name: "CoordinatorKit", dependencies: ["CoordinatorKitMacros"]),
-
+        
         // A test target used to develop the macro implementation.
         .testTarget(
             name: "CoordinatorKitTests",

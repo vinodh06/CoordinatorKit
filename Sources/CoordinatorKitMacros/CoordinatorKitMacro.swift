@@ -44,6 +44,14 @@ public enum CoordinatorKit: MemberMacro, ExtensionMacro {
         conformingTo protocols: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
+        // Skip extension generation if arguments are invalid
+        guard let arguments = node.arguments?.as(LabeledExprListSyntax.self),
+              let _ = arguments.first?.expression.description,
+              let _ = type.as(IdentifierTypeSyntax.self)?.name.text else {
+            // Instead of throwing again, just return nothing
+            return []
+        }
+        
         guard let typeName = type.as(IdentifierTypeSyntax.self)?.name.text else {
             throw CustomError.message("Unable to determine type name for extension.")
         }
@@ -51,6 +59,7 @@ public enum CoordinatorKit: MemberMacro, ExtensionMacro {
         let ext = try ExtensionDeclSyntax("@MainActor extension \(raw: typeName): Coordinator {}")
         return [ext]
     }
+
 }
 
 
