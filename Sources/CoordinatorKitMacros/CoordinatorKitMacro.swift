@@ -3,7 +3,7 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-public struct CoordinatorKit: MemberMacro, ExtensionMacro {
+public enum CoordinatorKit: MemberMacro, ExtensionMacro {
 
     public static func expansion(
         of node: AttributeSyntax,
@@ -24,7 +24,16 @@ public struct CoordinatorKit: MemberMacro, ExtensionMacro {
             "var actionCancellables = Set<AnyCancellable>()"
         ].map { DeclSyntax(stringLiteral: $0) }
 
-        return memberDecls
+        let deinitDecl = DeclSyntax(stringLiteral: """
+            deinit {
+                Task { @MainActor in
+                    cleanup()
+                }
+            }
+            """
+        )
+        
+        return memberDecls + [deinitDecl]
     }
 
     // Adds protocol conformance via extension
@@ -59,4 +68,5 @@ struct CoordinatorKitPlugin: CompilerPlugin {
         CoordinatorKit.self
     ]
 }
+
 
