@@ -1,3 +1,5 @@
+import CoordinatorKitInterface
+
 @attached(member, names: arbitrary)
 @attached(extension, conformances: Coordinator)
 public macro Coordinator(_ route: Any) = #externalMacro(
