@@ -1,19 +1,40 @@
 # CoordinatorKit
 
-CoordinatorKit is a modern, lightweight SwiftUI navigation framework built with the power of Swift Macros. It enables a clean, type-safe, and declarative way to manage navigation flows in SwiftUI apps with minimal boilerplate.
+A powerful and lightweight SwiftUI coordinator framework that enables structured, type-safe navigation using `NavigationStack`, `sheet`, and `fullScreenCover`. Built with modern Swift, Combine, and macro-based boilerplate reduction.
 
-> 🧠 Built with Swift 6 Macros — Requires Xcode 15.3+ and Swift 6 toolchain.
+> ✅ Supports: Navigation Stack • Sheets • Full-Screen Covers<br>
+> 🧠 Inspired by TCA (The Composable Architecture)<br>
+> 🧩 Modular • Testable • Scalable<br>
+> 🧵 Built for Swift Concurrency
+
+---
+
+## 📖 Table of Contents
+
+* [✨ Features](#-features)
+* [📦 Installation](#-installation)
+* [🧭 What is CoordinatorKit?](#-what-is-coordinatorkit)
+* [🧱 Core Concepts](#-core-concepts)
+* [🧪 Example Usage](#-example-usage)
+* [🛠️ Customizing Navigation Validation](#️-customizing-navigation-validation)
+* [🧼 Cleanup](#-cleanup)
+* [🐞 Debug Logging](#-debug-logging)
+* [📚 Advanced Notes](#-advanced-notes)
+* [🧪 Testing](#-testing)
+* [🛠 Requirements](#-requirements)
+* [🙌 Contributing](#-contributing)
+* [🔗 Links](#-links)
 
 ---
 
 ## ✨ Features
 
-- ✅ **Macro-based coordinator system** — Automatically generates boilerplate.
-- 🧭 **Type-safe routing** — Routes are enums that conform to `NavigationRoute`.
-- 🧼 **Clean architecture** — Coordinators handle logic, routes build views.
-- 📱 **SwiftUI-first** — Built for NavigationStack, `.sheet`, `.fullScreenCover`.
-- 📦 **Composable & scalable** — Perfect for modular or feature-based architecture.
-- 🧪 **Integrated ActionDispatcher** — Enables unidirectional data flow.
+* ✅ **Macro-based coordinator system** — Automatically generates boilerplate.
+* 🧭 **Type-safe routing** — Routes are enums conforming to `NavigationRoute`.
+* 🧼 **Clean architecture** — Coordinators handle logic, routes build views.
+* 📱 **SwiftUI-first** — Built for `NavigationStack`, `.sheet`, and `.fullScreenCover`.
+* 📦 **Composable & scalable** — Perfect for modular or feature-based apps.
+* 🧪 **Integrated ActionDispatcher** — Enables unidirectional data flow and side effects.
 
 ---
 
@@ -29,167 +50,231 @@ CoordinatorKit is a modern, lightweight SwiftUI navigation framework built with 
 https://github.com/vinodh06/CoordinatorKit
 ```
 
-4. Choose `CoordinatorKit` and add it to your target.
+4. Select `CoordinatorKit` and add it to your project target.
 
 ---
 
-## 🚀 Quick Start
+## 🧭 What is CoordinatorKit?
 
-Here’s how to build a coordinator-driven navigation flow in minutes:
+CoordinatorKit helps manage SwiftUI navigation in a scalable, testable, and type-safe way.
 
-### 1. Define Your Routes
+It decouples navigation logic from your views by:
 
-Create an enum that conforms to `NavigationRoute` and define your `Action` type.
+* Using **typed routes** via `NavigationRoute`
+* Centralizing **side effects and navigation triggers** using `ActionDispatcher`
+* Avoiding modal presentation conflicts through **built-in error safety**
+* Reducing boilerplate via Swift macros (`@Coordinator`)
+
+---
+
+## 🧱 Core Concepts
+
+### 1. `NavigationRoute`
+
+A protocol that defines your app’s routes. Each route builds its own destination `View`.
 
 ```swift
-import CoordinatorKit
-import SwiftUI
-
-enum AppRoute: NavigationRoute {
-    case home
-    case detail(message: String)
+enum MyRoute: NavigationRoute {
+    case home, details
 
     enum Action {
-        case goToDetail
+        case didTapSomething
     }
 
     func build(actionDispatcher: ActionDispatcher<Action>) -> some View {
         switch self {
         case .home:
-            VStack {
-                Text("Welcome to Home")
-                Button("Go to Detail") {
-                    actionDispatcher.send(.goToDetail)
+            HomeView()
+                .onTapGesture {
+                    actionDispatcher.send(.didTapSomething)
                 }
-            }
-
-        case .detail(let message):
-            Text("Detail screen: \(message)")
+        case .details:
+            DetailsView()
         }
     }
 }
 ```
 
+Requirements:
+
+* A unique `id` (provided by default)
+* A `build()` method that returns a SwiftUI `View`
+* An associated `Action` type
+
 ---
 
-### 2. Create a Macro-powered Coordinator
+### 2. `Coordinator`
 
-Use the `@Coordinator` macro to auto-generate the boilerplate for managing navigation state.
+Define your coordinator using the `@Coordinator(MyRoute.self)` macro. It auto-generates navigation state, subscriptions, and cleanup.
 
 ```swift
-@Coordinator(AppRoute)
-final class AppCoordinator {
-    @MainActor
-    func handle(_ action: AppRoute.Action) {
+@Coordinator(MyRoute.self)
+final class MyAppCoordinator: ObservableObject {
+    func handle(_ action: MyRoute.Action) {
         switch action {
-        case .goToDetail:
-            push(.detail(message: "Hello from Home"))
+        case .didTapSomething:
+            try? push(.details)
         }
     }
 }
 ```
 
-> The macro adds state like `navigationPath`, `sheetRoute`, and `actionDispatcher` automatically.
+The macro provides:
+
+* `@Published` navigation stack and presentation state
+* `ActionDispatcher` to pass actions into the coordinator
+* Automatic cleanup on `deinit`
 
 ---
 
-### 3. Plug into SwiftUI
+### 3. `CoordinatorView`
 
-Render your coordinator in your root SwiftUI view.
+Wrap your coordinator in `CoordinatorView` to start navigation.
 
 ```swift
-struct ContentView: View {
-    var body: some View {
-        CoordinatorView(
-            coordinator: AppCoordinator(),
-            initialRoute: .home
-        )
+@main
+struct MyApp: App {
+    var body: some Scene {
+        WindowGroup {
+            CoordinatorView(
+                coordinator: MyAppCoordinator(),
+                initialRoute: .home
+            )
+        }
     }
 }
 ```
 
 ---
 
-## 🔍 Behind the Scenes
-
-When you use `@Coordinator(AppRoute)`, it expands to:
-
-- Published properties for managing:
-  - `navigationPath`
-  - `sheetRoute`
-  - `fullScreenRoute`
-- An `ActionDispatcher` and cancellables
-- Conformance to `Coordinator` protocol
-
----
-
-## 📚 API Reference
-
-### `NavigationRoute`
-A protocol requiring a `build(actionDispatcher:)` method to generate views.
+## 🧪 Example Usage
 
 ```swift
-func build(actionDispatcher: ActionDispatcher<Action>) -> some View
+enum MyRoute: NavigationRoute {
+    case home, details
+
+    enum Action {
+        case openDetails
+    }
+
+    func build(actionDispatcher: ActionDispatcher<Action>) -> some View {
+        switch self {
+        case .home:
+            HomeScreen()
+                .onTapGesture {
+                    actionDispatcher.send(.openDetails)
+                }
+        case .details:
+            DetailsScreen()
+        }
+    }
+}
 ```
 
-### `Coordinator`
-A protocol defining:
+Create a coordinator:
 
-- `push`, `pop`, `presentSheet`, `dismissSheet`, etc.
-- `handle(_ action: Action)`
-- Navigation properties auto-injected by the macro
+```swift
+@Coordinator(MyRoute.self)
+final class MyCoordinator: ObservableObject {
+    func handle(_ action: MyRoute.Action) {
+        switch action {
+        case .openDetails:
+            try? push(.details)
+        }
+    }
+}
+```
 
-### `ActionDispatcher`
-A Combine-based publisher to decouple view actions from navigation logic.
+Wire it into your app:
+
+```swift
+CoordinatorView(
+    coordinator: MyCoordinator(),
+    initialRoute: .home
+)
+```
 
 ---
 
-## ✅ Supported Navigation Types
+## 🛠️ Customizing Navigation Validation
 
-| Navigation Style     | Supported? |
-|----------------------|------------|
-| `NavigationStack`    | ✅ Yes      |
-| `.sheet`             | ✅ Yes      |
-| `.fullScreenCover`   | ✅ Yes      |
-| Deep linking         | ✅ Planned  |
+Block or validate transitions by overriding `validateNavigation(to:from:)`:
+
+```swift
+override func validateNavigation(to newRoute: Route, from currentRoute: Route?) throws {
+    if currentRoute == .details && newRoute == .details {
+        throw CoordinatorError.navigationNotAllowed("Already in details.")
+    }
+}
+```
+
+---
+
+## 🧼 Cleanup
+
+Manually reset navigation stack, sheet, fullscreen modals, and any subscriptions:
+
+```swift
+coordinator.cleanup()
+```
+
+---
+
+## 🐞 Debug Logging
+
+Enable debug logging to trace every action and route change:
+
+```swift
+coordinator.enableDebugLogging()
+```
+
+---
+
+## 📚 Advanced Notes
+
+* Macros (`@Coordinator`) require **Swift 5.9+** and **Xcode 15.3+**
+* Macro support requires **macOS 13.3+** or later
+* For unit testing, use mock coordinators and invoke `.handle()` manually
+* Safe presentation helpers included:
+
+  * `tryPresentSheet(_:)`
+  * `tryPresentFullScreen(_:)`
 
 ---
 
 ## 🧪 Testing
 
-All components are testable. You can instantiate coordinators and simulate route transitions or actions.
+All components are testable and coordinator logic can be validated in isolation:
 
 ```swift
 let coordinator = AppCoordinator()
 coordinator.handle(.goToDetail)
+// Assert navigation stack updates accordingly
 ```
 
-Use Swift’s test suite to validate navigation logic.
+Use XCTest to simulate and assert navigation flow.
 
 ---
 
 ## 🛠 Requirements
 
-- Xcode 15.3+
-- Swift 6 toolchain
-- iOS 16+, macOS 10.15+, watchOS 6+, tvOS 13+
+* Swift 5.9+
+* Xcode 15.3+
+* Swift 6 toolchain
+* iOS 16+, macOS 13.3+, watchOS 6+, tvOS 13+
 
 ---
 
-## 📄 License
-
-MIT License — see [LICENSE](./LICENSE)
-
----
 
 ## 🙌 Contributing
 
-Pull requests and feedback welcome! If you spot a bug or have ideas, please open an issue or submit a PR.
+Contributions and feedback are welcome!
+If you spot an issue or have an idea, feel free to [open an issue](https://github.com/vinodh06/CoordinatorKit/issues) or submit a PR.
 
 ---
 
 ## 🔗 Links
 
-- [CoordinatorKit on GitHub](https://github.com/vinodh06/CoordinatorKit)
+* [CoordinatorKit on GitHub](https://github.com/vinodh06/CoordinatorKit)
 
 ---
