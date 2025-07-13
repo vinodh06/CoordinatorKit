@@ -109,7 +109,7 @@ Define your coordinator using the `@Coordinator(MyRoute.self)` macro. It auto-ge
 
 ```swift
 @Coordinator(MyRoute.self)
-final class MyAppCoordinator: ObservableObject {
+final class MyAppCoordinator {
     func handle(_ action: MyRoute.Action) {
         switch action {
         case .didTapSomething:
@@ -175,7 +175,7 @@ Create a coordinator:
 
 ```swift
 @Coordinator(MyRoute.self)
-final class MyCoordinator: ObservableObject {
+final class MyCoordinator {
     func handle(_ action: MyRoute.Action) {
         switch action {
         case .openDetails:
