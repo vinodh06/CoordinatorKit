@@ -11,11 +11,27 @@ public enum CoordinatorKit: MemberMacro, ExtensionMacro {
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard let arguments = node.arguments?.as(LabeledExprListSyntax.self),
-              let routeType = arguments.first?.expression.description else {
-            throw CustomError.message("@Coordinator macro requires a type NavigationRoute")
+              let routeTypeExpr = arguments.first?.expression else {
+            throw CustomError.message("@Coordinator macro requires a NavigationRoute type")
         }
 
-        // Members
+        // Extract the base type name, handling both Type and Type.self
+        let routeType: String
+        if let memberAccess = routeTypeExpr.as(MemberAccessExprSyntax.self),
+           memberAccess.declName.baseName.text == "self" {
+            // Handle HomeRoute.self -> extract "HomeRoute"
+            routeType = memberAccess.base?.description ?? ""
+        } else {
+            // Handle HomeRoute directly
+            routeType = routeTypeExpr.description
+        }
+        
+        // Validate we got a non-empty type name
+        guard !routeType.isEmpty else {
+            throw CustomError.message("Unable to determine route type name")
+        }
+
+        // Members - now uses clean type name without .self
         let memberDecls: [DeclSyntax] = [
             "@Published internal var navigationPath: [\(routeType)] = []",
             "@Published internal var sheetRoute: \(routeType)?",
@@ -44,14 +60,6 @@ public enum CoordinatorKit: MemberMacro, ExtensionMacro {
         conformingTo protocols: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
-        // Skip extension generation if arguments are invalid
-        guard let arguments = node.arguments?.as(LabeledExprListSyntax.self),
-              let _ = arguments.first?.expression.description,
-              let _ = type.as(IdentifierTypeSyntax.self)?.name.text else {
-            // Instead of throwing again, just return nothing
-            return []
-        }
-        
         guard let typeName = type.as(IdentifierTypeSyntax.self)?.name.text else {
             throw CustomError.message("Unable to determine type name for extension.")
         }
@@ -59,9 +67,7 @@ public enum CoordinatorKit: MemberMacro, ExtensionMacro {
         let ext = try ExtensionDeclSyntax("@MainActor extension \(raw: typeName): Coordinator {}")
         return [ext]
     }
-
 }
-
 
 enum CustomError: Error, CustomStringConvertible {
     case message(String)
@@ -77,5 +83,3 @@ struct CoordinatorKitPlugin: CompilerPlugin {
         CoordinatorKit.self
     ]
 }
-
-
