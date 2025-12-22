@@ -1,4 +1,3 @@
-```markdown
 # CoordinatorKit
 
 A powerful and type-safe SwiftUI coordinator framework built for Swift 6 concurrency. Enables structured navigation using `NavigationStack`, `sheet`, and `fullScreenCover` with interactive gesture control, robust state management, and macro-based boilerplate reduction.
@@ -81,7 +80,7 @@ It decouples navigation logic from your views by:
 ### 1. `NavigationRoute`
 
 A protocol that defines your app's routes. Each route builds its own destination `View` and must conform to `Sendable` for Swift 6 compatibility.
-
+```
 enum HomeRoute: NavigationRoute {
     case demo
     case screen2
@@ -113,7 +112,7 @@ enum HomeRoute: NavigationRoute {
         }
     }
 }
-
+```
 Requirements:
 
 * Conform to `Hashable`, `Identifiable`, and `Sendable`
@@ -125,7 +124,7 @@ Requirements:
 ### 2. `Coordinator` (Manual Implementation)
 
 You can define your coordinator manually by conforming to the `Coordinator` protocol:
-
+```
 @MainActor
 final class HomeCoordinator: Coordinator {
     typealias Route = HomeRoute
@@ -158,13 +157,13 @@ final class HomeCoordinator: Coordinator {
         #endif
     }
 }
-
+```
 ---
 
 ### 3. `CoordinatorView`
 
 Wrap your coordinator in `CoordinatorView` to start navigation.
-
+```
 @main
 struct MyApp: App {
     var body: some Scene {
@@ -173,7 +172,7 @@ struct MyApp: App {
         }
     }
 }
-
+```
 ---
 
 ## ⚡ Using the @Coordinator Macro
@@ -188,7 +187,7 @@ The `@Coordinator` macro **eliminates all boilerplate** by automatically generat
 * `Coordinator` protocol conformance via extension
 
 ### Macro Usage
-
+```
 import CoordinatorKit
 
 @Coordinator(HomeRoute.self)
@@ -203,11 +202,11 @@ class HomeCoordinator {
         }
     }
 }
-
+```
 ### What the Macro Generates
 
 The macro expands to:
-
+```
 class HomeCoordinator {
     @Published var root: HomeRoute
     @Published var navigationPath: [HomeRoute] = []
@@ -238,7 +237,7 @@ class HomeCoordinator {
 }
 
 @MainActor extension HomeCoordinator: Coordinator {}
-
+```
 ### Benefits
 
 * ✅ **Zero boilerplate** — Focus only on your navigation logic
@@ -252,7 +251,7 @@ class HomeCoordinator {
 ## 🧪 Example Usage
 
 ### Complete Example with Macro
-
+```
 import SwiftUI
 import CoordinatorKit
 
@@ -311,11 +310,11 @@ struct MyApp: App {
         }
     }
 }
-
+```
 ### Manual Implementation (Without Macro)
 
 If you prefer not to use macros or need more control:
-
+```
 @MainActor
 final class AppCoordinator: Coordinator {
     typealias Route = AppRoute
@@ -344,7 +343,7 @@ final class AppCoordinator: Coordinator {
         }
     }
 }
-
+```
 ---
 
 ## 🎯 Interactive Gesture Control
@@ -352,7 +351,7 @@ final class AppCoordinator: Coordinator {
 CoordinatorKit provides fine-grained control over interactive gestures like swipe-back and swipe-to-dismiss.
 
 ### Preventing Swipe-to-Dismiss on Sheets
-
+```
 @Coordinator(AppRoute.self)
 class AppCoordinator {
     @Published var hasUnsavedChanges = false
@@ -377,9 +376,9 @@ class AppCoordinator {
         // Your navigation logic
     }
 }
-
+```
 ### Preventing Swipe-Back Navigation
-
+```
 @Coordinator(AppRoute.self)
 class AppCoordinator {
     func canInteractiveNavigationPop(from route: AppRoute) -> Bool {
@@ -404,13 +403,13 @@ class AppCoordinator {
         // Your navigation logic
     }
 }
-
+```
 ---
 
 ## 🛠️ Customizing Navigation Validation
 
 Block or validate transitions by overriding `validateNavigation(to:from:)`:
-
+```
 @Coordinator(AppRoute.self)
 class AppCoordinator {
     @Published var isUserLoggedIn = false
@@ -432,27 +431,27 @@ class AppCoordinator {
         // Your navigation logic
     }
 }
-
+```
 ---
 
 ## 🔗 Deep Linking
 
 Navigate to specific paths programmatically:
-
+```
 // Deep link to a specific screen
 coordinator.navigate(to: [.home, .profile, .settings])
 
 // Change root and clear stack
 coordinator.setRoot(.onboarding, clearNavigationStack: true)
-
+```
 ---
 
 ## 🧼 Cleanup
 
 Manually reset navigation stack, presentations, and subscriptions:
-
+```
 coordinator.cleanup()
-
+```
 This is automatically called when the coordinator is deallocated.
 
 ---
@@ -462,7 +461,7 @@ This is automatically called when the coordinator is deallocated.
 CoordinatorKit uses `OSLog` for performance-optimized, non-blocking debug logging.
 
 ### Enable Logging
-
+```
 // In your App init
 @main
 struct MyApp: App {
@@ -476,11 +475,11 @@ struct MyApp: App {
         }
     }
 }
-
+```
 ### Disable Logging
-
+```
 CoordinatorDebugConfiguration.disable()
-
+```
 ### Log Output
 
 When enabled, you'll see:
@@ -542,7 +541,7 @@ The `PresentationState` struct manages:
 ## 🧪 Testing
 
 All components are testable in isolation:
-
+```
 @MainActor
 func testNavigationFlow() async {
     let coordinator = AppCoordinator(root: .home)
@@ -561,7 +560,7 @@ func testNavigationFlow() async {
     XCTAssertTrue(coordinator.navigationPath.isEmpty)
     XCTAssertNil(coordinator.presentationState.sheetRoute)
 }
-
+```
 ---
 
 ## 🛠 Requirements
@@ -588,4 +587,3 @@ If you spot an issue or have an idea, feel free to [open an issue](https://githu
 * [Swift Macros Documentation](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/macros/)
 
 ---
-```
