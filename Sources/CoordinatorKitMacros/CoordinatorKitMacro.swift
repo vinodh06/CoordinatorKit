@@ -15,36 +15,39 @@ public enum CoordinatorKit: MemberMacro, ExtensionMacro {
             throw CustomError.message("@Coordinator macro requires a NavigationRoute type")
         }
 
-        // Extract the base type name, handling both Type and Type.self
         let routeType: String
         if let memberAccess = routeTypeExpr.as(MemberAccessExprSyntax.self),
            memberAccess.declName.baseName.text == "self" {
-            // Handle HomeRoute.self -> extract "HomeRoute"
-            routeType = memberAccess.base?.description ?? ""
+            routeType = memberAccess.base?.description.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         } else {
-            // Handle HomeRoute directly
-            routeType = routeTypeExpr.description
+            routeType = routeTypeExpr.description.trimmingCharacters(in: .whitespacesAndNewlines)
         }
         
-        // Validate we got a non-empty type name
         guard !routeType.isEmpty else {
             throw CustomError.message("Unable to determine route type name")
         }
 
-        // Members - now uses clean type name without .self
         let memberDecls: [DeclSyntax] = [
-            "@Published internal var navigationPath: [\(routeType)] = []",
-            "@Published internal var sheetRoute: \(routeType)?",
-            "@Published internal var fullScreenRoute: \(routeType)?",
-            "let actionDispatcher = ActionDispatcher<\(routeType).Action>()",
-            "var actionCancellables = Set<AnyCancellable>()"
-        ].map { DeclSyntax(stringLiteral: $0) }
-
-        let deinitDecl = DeclSyntax(stringLiteral: """
-            deinit {
-                Task { @MainActor in
-                    cleanup()
+            "@Published var root: \(raw: routeType)",
+            "@Published var navigationPath: [\(raw: routeType)] = []",
+            "@Published var presentationState = PresentationState<\(raw: routeType)>()",
+            "let actionDispatcher = ActionDispatcher<\(raw: routeType).Action>()",
+            "var actionCancellables = Set<AnyCancellable>()",
+                """
+                init(root: \(raw: routeType)) {
+                    self.root = root
+                    bindActionDispatcher()
                 }
+                """
+        ]
+        
+        let deinitDecl = DeclSyntax(stringLiteral:
+            """
+            deinit {
+                // AnyCancellable automatically cancels when deallocated
+                #if DEBUG
+                    print("🧹 \(routeType) Coordinator deallocated")
+                #endif
             }
             """
         )
@@ -52,7 +55,6 @@ public enum CoordinatorKit: MemberMacro, ExtensionMacro {
         return memberDecls + [deinitDecl]
     }
 
-    // Adds protocol conformance via extension
     public static func expansion(
         of node: AttributeSyntax,
         attachedTo declaration: some DeclGroupSyntax,
@@ -73,7 +75,8 @@ enum CustomError: Error, CustomStringConvertible {
     case message(String)
     var description: String {
         switch self {
-        case .message(let msg): return msg }
+        case .message(let msg): return msg
+        }
     }
 }
 
@@ -83,3 +86,5 @@ struct CoordinatorKitPlugin: CompilerPlugin {
         CoordinatorKit.self
     ]
 }
+
+

@@ -8,7 +8,7 @@ let package = Package(
     name: "CoordinatorKit",
     platforms: [
         .macOS(.v13),
-        .iOS(.v16),
+        .iOS(.v17),
         .tvOS(.v13),
         .watchOS(.v9)
     ],
