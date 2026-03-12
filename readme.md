@@ -1,3 +1,6 @@
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fvinodh06%2FCoordinatorKit%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/vinodh06/CoordinatorKit)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fvinodh06%2FCoordinatorKit%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/vinodh06/CoordinatorKit)
+
 # CoordinatorKit
 
 A powerful and type-safe SwiftUI coordinator framework built for Swift 6 concurrency. Enables structured navigation using `NavigationStack`, `sheet`, and `fullScreenCover` with interactive gesture control, robust state management, and macro-based boilerplate reduction.
