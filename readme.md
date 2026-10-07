@@ -3,13 +3,19 @@
 
 # CoordinatorKit
 
-A powerful and type-safe SwiftUI coordinator framework built for Swift 6 concurrency. Enables structured navigation using `NavigationStack`, `sheet`, and `fullScreenCover` with interactive gesture control, robust state management, and macro-based boilerplate reduction.
+A Swift 6 navigation architecture for building large, modular SwiftUI applications.
 
-> ✅ Supports: Navigation Stack • Sheets • Full-Screen Covers • Interactive Dismissal Control<br>
-> 🧠 Swift 6 Ready • @MainActor Isolated • Sendable-Safe<br>
-> 🧩 Modular • Testable • Scalable<br>
-> 🔍 OSLog-based Debug Logging<br>
-> ⚡ Swift Macro Support for Zero Boilerplate
+CoordinatorKit moves navigation decisions out of Views and into type-safe, testable coordinators.
+
+It supports:
+
+• NavigationStack
+• Sheets and full-screen flows
+• Deep linking
+• Nested coordinators
+• Navigation validation
+• Swift 6 concurrency
+• Macro-generated coordinator boilerplate
 
 ---
 
