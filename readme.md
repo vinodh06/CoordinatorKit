@@ -9,13 +9,13 @@ CoordinatorKit moves navigation decisions out of Views and into type-safe, testa
 
 It supports:
 
-• NavigationStack
-• Sheets and full-screen flows
-• Deep linking
-• Nested coordinators
-• Navigation validation
-• Swift 6 concurrency
-• Macro-generated coordinator boilerplate
+* NavigationStack
+* Sheets and full-screen flows
+* Deep linking
+* Nested coordinators
+* Navigation validation
+* Swift 6 concurrency
+* Macro-generated coordinator boilerplate
 
 ---
 
